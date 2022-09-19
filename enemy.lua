@@ -11,21 +11,11 @@ local enemy = {
     local o = {
       x = x,
       y = y,
-      caught = false,
       dir = dir,
       pump = 1,
-      balloon = false,
-      bumped = 0,
-      grounded = true,
       popped = 0,
       timer = 0,
-      dead = false,
       safe = 100,
-      anim = {
-        move = 1,
-        para = 1,
-        pump = 1
-      },
       ball_body = {
         x = x,
         y = y,
@@ -45,19 +35,9 @@ local enemy = {
         height = 16
       },
       vel = {
-        x = dir * rnd() + 0.25,
-        y = -1 * rnd() + 0.25
+        x = 0,
+        y = 0,
       },
-      sprite = 72,
-      --[[
-      sprites = {
-        ball = { 226, 227, 242 },
-        dead = 224,
-        fall = { 202, 204, 206 },
-        flying = { 196, 198, 200, 198 },
-        pump = { 192, 194 },
-      },
-      ]]
       animations = {
         balloon = animation:new( 'balloon', {226, 227, 242}, inflate_time, true ),
         pumping = animation:new( 'pumping', {192, 194}, 5, true ),
@@ -65,20 +45,22 @@ local enemy = {
         falling = animation:new( 'falling', {202, 204, 206}, 5, false ),
       },
       turncount = 0,
+      state = 'pumping',
 
       animate = function(self)
-        if self.dead then
-          self.sprite = 224
-        elseif self.grounded then
+        if self.state == 'pumping' then
           self.sprite = self.animations.pumping:get()
-        elseif self.balloon then
+        elseif self.state == 'flying' then
           if self.vel.y > 0 then
             self.sprite = self.animations.flapping:get(1)
           else
             self.sprite = self.animations.flapping:get()
-          end
-        else
+          end          
+        elseif self.state == 'falling' then
           self.sprite = self.animations.falling:get()
+        elseif self.state == 'caught' then
+        elseif self.state == 'dead' then
+          self.sprite = 224
         end
       end,
 
@@ -128,27 +110,8 @@ local enemy = {
         end
       end,
 
-      collision_player = function(self)
-        if collision(self.ball_body, player.foot_body) then
-          if self.safe < 1 then
-            scores:new(self.x, self.y, 'air')
-            self:pop()
-            player.vel.y = -1
-            player.vel.x = -player.vel.x / 2
-            self.safe = 10
-          end
-        elseif collision(self.foot_body, player.ball_body) and self.balloon then
-          player:pop()
-          self.vel.y = -1
-          self.vel.x = -self.vel.x / 2
-        elseif collision(self.body, player.body) then
-          player.vel.x = -player.vel.x / 2
-          self.vel.x = -self.vel.x / 2
-        end
-      end,
-
       draw = function(self)
-        if self.grounded and not self.dead then
+        if self.state == 'pumping' then
           local sprite = self.animations.balloon:get()
           spr(sprite, self.x - 4, self.y + 10)
         end
@@ -157,22 +120,6 @@ local enemy = {
           flip_x = true
         end
         spr(self.sprite, self.x, self.y, 2, 2, flip_x)
-        debug:draw_body(self.body, 10)
-        debug:draw_body(self.ball_body, 12)
-        debug:draw_body(self.foot_body, 8)
-      end,
-
-      move = function(self)
-        if self.vel.x < 1 and self.vel.x > -1 then
-          self.vel.x *= 1.1
-        end
-        self.y += self.vel.y
-        self.x += self.vel.x
-        if self.vel.x < 0 then
-          self.dir = left
-        elseif self.vel.x > 0 then
-          self.dir = right
-        end
       end,
 
       pop = function(self)
@@ -200,57 +147,90 @@ local enemy = {
         self.foot_body.y = self.body.y + 8
       end,
 
-      update = function(self)
-        if self.safe > 0 then
-          self.safe -= 1
-        end
-        if self.turncount > 0 then
-          self.turncount -= 1
-        end
-        if self.caught then
-          self.x = fish.x
-          self.y = fish.y
-          if not fish.active then
-            self.dead = true
-          end
-        elseif self.dead then
-          if self.y > 127 then
-            if not self.offscreen then
-              bubbles:new(self.x)
-              splashes:new(self.x)
-            end
-            self.offscreen = true
+      update_pumping = function(self)
+        if ticks % inflate_time == 0 then
+          if self.pump < 3 then
+            self.pump += 1
           else
-            self.y += 2
+            self.vel.x = dir * rnd() + 0.25
+            self.vel.y = -1 * rnd() + 0.25
+            self.state = 'flying'
+            self.pump = 1
           end
-        elseif self.grounded then
-          if not self.balloon then
-            if ticks % inflate_time == 0 then
-              if self.pump < 3 then
-                self.pump += 1
-              else
-                self.grounded = false
-                self.balloon = true
-                self.pump = 1
-              end
-            end
-          end
-          if collision(self.body, player.body) then
-            scores:new(self.x, self.y, 'ground')
-            self.dead = true
-          end
-        else
-          self:collision_level()
-          self:collision_enemies()
-          self:collision_player()
-          self:move()
-          wrap(self)
         end
+        if collision(self.body, player.body) then
+          scores:new(self.x, self.y, 750)
+          self.state = 'dead'
+        end
+      end,
+
+      update_flying = function(self)
+        if self.vel.x < 1 and self.vel.x > -1 then
+          self.vel.x *= 1.1
+        end
+        if self.vel.x < 0 then
+          self.dir = left
+        elseif self.vel.x > 0 then
+          self.dir = right
+        end
+        if collision(self.body, player.foot_body) then
+          player.vel.y = -1
+          player.vel.x = -player.vel.x / 2
+          self.state = 'falling'
+        elseif collision(self.body, player.body) then
+          player.vel.x = -player.vel.x / 2
+          self.vel.x = -self.vel.x / 2
+        end
+        self:collision_level()
+        self:collision_enemies()
+      end,
+
+      update_falling = function(self)
+        if collision(self.ball_body, player.foot_body) then
+          scores:new(self.x, self.y, 750)
+          self.state = 'dead'
+        end
+        self:collision_level()
+        self:collision_enemies()
+      end,
+
+      update_caught = function(self)
+        self.x = fish.x
+        self.y = fish.y
+        if not fish.active then
+          self.dead = true
+        end
+      end,
+
+      update_dead = function(self)
+        if self.y > 127 then
+          if not self.offscreen then
+            bubbles:new(self.x)
+            splashes:new(self.x)
+          end
+          self.offscreen = true
+        else
+          self.y += 2
+        end
+      end,
+
+      update = function(self)
+        if self.state == 'pumping' then
+          self:update_pumping()
+        elseif self.state == 'flying' then
+          self:update_flying()
+        elseif self.state == 'falling' then
+          self:update_falling()
+        elseif self.state == 'caught' then
+          self:update_caught()
+        elseif self.state == 'dead' then
+          self:update_dead()
+        end
+        self.y += self.vel.y
+        self.x += self.vel.x
+        wrap(self)
         self:update_body()
         self:animate()
-        if self.popped > 0 then
-          self.popped -= 1
-        end
       end,
     }
 

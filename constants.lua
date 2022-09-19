@@ -3,10 +3,6 @@
 ticks = 0
 left = -1
 right = 1
-f_fg = 0
-f_bg = 1
-f_solid = 2
-f_enemy = 3
 pop_delay = 10
 bgcolor = 0
 

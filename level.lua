@@ -1,5 +1,10 @@
 -- level
 
+f_fg = 0
+f_bg = 1
+f_solid = 2
+f_enemy = 3
+
 level = {
 	current = 1,
 	celx = 0,
