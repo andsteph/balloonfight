@@ -4,10 +4,10 @@ player = {
     popped = 0,
     lastb4 = false,
     animations = {
-        flapping = animation:new( 'flapping', {4, 6, 4, 8}, 3, true ),
-        standing = animation:new( 'standing', {34, 36, 34, 38}, 30, true ),
-        running = animation:new( 'running', {40, 42, 40, 44}, 3, true ),
-        dying = animation:new( 'dying', {10, 12, 14, 12}, 3, true ),
+        flapping = animation:new('flapping', { 4, 6, 4, 8 }, 3, true),
+        standing = animation:new('standing', { 34, 36, 34, 38 }, 30, true),
+        running = animation:new('running', { 40, 42, 40, 44 }, 3, true),
+        dying = animation:new('dying', { 10, 12, 14, 12 }, 3, true),
     },
     state = 'grounded',
     vel = { x = 0, y = 0 },
@@ -44,7 +44,7 @@ player = {
             elseif input.b4 or input.b5 then
                 self.sprite = self.animations.flapping:get()
             else
-                self.sprite = self.animations.flapping.sprs[1]
+                self.sprite = self.animations.flapping:get(1)
             end
             if self.balloons == 2 then
                 self.sprite = self.sprite + 62
@@ -122,21 +122,17 @@ player = {
         end
         if not self.lastb4 and input.b4 then
             self.vel.y -= force * 2
-            self.grounded = false
         elseif input.b5 then
             self.vel.y -= force
-            self.grounded = false
         end
 
     end,
 
     update_grounded = function(self)
         self:update_input()
-        if input.x == 0 then
-            self.vel.x = lerp( 0, self.vel.x, 0.5 )
-        else
+        if input.x ~= 0 then
             self.vel.x += input.x * gspeed
-            self.vel.x = mid( -gspeed_max, self.vel.x, gspeed_max )
+            self.vel.x = mid(-gspeed_max, self.vel.x, gspeed_max)
         end
     end,
 
@@ -144,7 +140,7 @@ player = {
         self:update_input()
         if input.b4 or input.b5 then
             self.vel.x += input.x * aspeed
-            self.vel.x = mid( -aspeed_max, self.vel.x, aspeed_max )
+            self.vel.x = mid(-aspeed_max, self.vel.x, aspeed_max)
         end
     end,
 

@@ -22,9 +22,24 @@ function distance(obj1,obj2)
     return ((x2-x1)^2+(y2-y1)^2)^0.5
 end
 
+-- ease
+function ease(current, max, step)
+    local s = sgn(max)
+    if current == 0 then
+        return 0
+    else
+        return 
+    end
+end
+
 -- lerp
+--[[
 function lerp(a, b, t)
     return a+(b-a)*t
+end
+]]
+function lerp(tar,pos,perc)
+    return (1-perc)*tar + perc*pos;
 end
 
 -- pad with zeros
