@@ -1,6 +1,4 @@
 player = {
-    width = 16,
-    height = 16,
     anim = 1,
     ball_anim = 1,
     popped = 0,
@@ -12,6 +10,9 @@ player = {
         dying = animation:new( 'dying', {10, 12, 14, 12}, 3, true ),
     },
     state = 'grounded',
+    vel = { x = 0, y = 0 },
+    lives = 2,
+    score = 0,
 
     init = function(self)
         self.balloons = 2

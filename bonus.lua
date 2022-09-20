@@ -18,9 +18,7 @@ bonus = {
         self.collected = 0
         bgstars:init()
         level:get(0)
-        player.balloons = 2
-        player.x = 56
-        player.y = 127
+        player:reset()
         _update = self.update
         _draw = self.draw
     end,
@@ -30,7 +28,7 @@ bonus = {
         cls(bgcolor)
         bgstars:draw()
         for ball in all(self.balloons) do
-            spr(62, ball.x, ball.y)
+            ball:draw()
         end
         level:draw_bg()
         level:draw_fg()
@@ -42,14 +40,9 @@ bonus = {
     new_balloon = function(self)
         local n = flr(rnd(4)) + 1
         local pipe = self.pipes[n]
-        local anchor_x = pipe.col * 8
-        local balloon = {
-            anchor_x = anchor_x,
-            x = anchor_x,
-            y = pipe.row * 8,
-            sine = 0
-        }
-        add(self.balloons, balloon)
+        local x = pipe.col * 8
+        local y = pipe.row * 8
+        add(self.balloons, balloon:new(x, y))
         self.counter += 1
     end,
 
@@ -70,15 +63,7 @@ bonus = {
         end
         bgstars:update()
         for ball in all(self.balloons) do
-            ball.y -= 1
-            ball.sine += 0.01
-            ball.x = ball.anchor_x + sin(ball.sine) * 5
-            ball.body = {
-                y = ball.y,
-                x = ball.x,
-                width = 8,
-                height = 8
-            }
+            ball:update()
             if ball.y < -8 then
                 del(self.balloons, ball)
             end
@@ -88,6 +73,7 @@ bonus = {
                 del(self.balloons, ball)
             end
         end
+        input:update()
         player:update()
         debug:update()
     end

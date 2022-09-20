@@ -18,9 +18,10 @@ level = {
 		map(self.celx, self.cely, 0, 0, 16, 16, f_fg + 1)
 	end,
 
-	get = function(self)
-		self.celx = self.current % 10 * 16
-		self.cely = flr(self.current / 10) * 16
+	get = function(self, n)
+		local current = n or self.current
+		self.celx = current % 10 * 16
+		self.cely = flr(current / 10) * 16
 		for x = 0, 15 do
 			for y = 0, 15 do
 				local sprite = mget(

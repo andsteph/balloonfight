@@ -3,8 +3,8 @@
 ticks = 0
 left = -1
 right = 1
-pop_delay = 10
 bgcolor = 0
+pop_delay = 10
 
 gravity = 0.1
 force = gravity * 2

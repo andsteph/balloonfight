@@ -20,7 +20,7 @@ enemies = {
     local dead_count = 0
     for enemy in all(self) do
       enemy:update()
-      if enemy.dead then
+      if enemy.state == 'dead' then
         dead_count += 1
       end
     end

@@ -1,6 +1,8 @@
 -- enemy
 
 inflate_time = 30
+safe_time = 3
+float = 0.5
 
 local enemy = {
   
@@ -13,31 +15,11 @@ local enemy = {
       y = y,
       dir = dir,
       pump = 1,
-      popped = 0,
-      timer = 0,
-      safe = 100,
-      ball_body = {
-        x = x,
-        y = y,
-        width = 8,
-        height = 8
-      },
-      foot_body = {
-        x = x,
-        y = y + 8,
-        width = 8,
-        height = 8
-      },
-      body = {
-        x = x,
-        y = y,
-        width = 8,
-        height = 16
-      },
-      vel = {
-        x = 0,
-        y = 0,
-      },
+      pop_timer = 0,
+      ball_body = { x = x, y = y, width = 8, height = 8 },
+      foot_body = { x = x, y = y + 8, width = 8, height = 8 },
+      body = { x = x, y = y, width = 8, height = 16 },
+      vel = { x = 0, y = 0 },
       animations = {
         balloon = animation:new( 'balloon', {226, 227, 242}, inflate_time, true ),
         pumping = animation:new( 'pumping', {192, 194}, 5, true ),
@@ -59,6 +41,7 @@ local enemy = {
         elseif self.state == 'falling' then
           self.sprite = self.animations.falling:get()
         elseif self.state == 'caught' then
+
         elseif self.state == 'dead' then
           self.sprite = 224
         end
@@ -94,10 +77,12 @@ local enemy = {
         test_body.y += self.vel.y
         local v_coll = level:collision(test_body)
         if v_coll then
-          if self.balloon then
+          if self.state == 'flying' then
             self.vel.y = -self.vel.y
           else
-            self.grounded = true
+            self.vel.x = 0
+            self.vel.y = 0
+            self.state = 'pumping'
           end
         end
         test_body.x = self.body.x
@@ -120,19 +105,6 @@ local enemy = {
           flip_x = true
         end
         spr(self.sprite, self.x, self.y, 2, 2, flip_x)
-      end,
-
-      pop = function(self)
-        if self.popped == 0 then
-          if self.balloon then
-            self.balloon = false
-            self.anim.para = 1
-            self.vel.y = 0.5
-            self.popped = pop_delay
-          else
-            self.dead = true
-          end
-        end
       end,
 
       update_body = function(self)
@@ -176,6 +148,8 @@ local enemy = {
         if collision(self.body, player.foot_body) then
           player.vel.y = -1
           player.vel.x = -player.vel.x / 2
+          self.vel.y = float
+          self.pop_timer = pop_delay
           self.state = 'falling'
         elseif collision(self.body, player.body) then
           player.vel.x = -player.vel.x / 2
@@ -186,9 +160,15 @@ local enemy = {
       end,
 
       update_falling = function(self)
-        if collision(self.ball_body, player.foot_body) then
-          scores:new(self.x, self.y, 750)
-          self.state = 'dead'
+        if self.pop_timer > 0 then
+          self.pop_timer -= 1
+        else
+          if collision(self.ball_body, player.foot_body) then
+            scores:new(self.x, self.y, 750)
+            player.vel.y = -1
+            player.vel.x = -player.vel.x / 2
+            self.state = 'dead'
+          end
         end
         self:collision_level()
         self:collision_enemies()
