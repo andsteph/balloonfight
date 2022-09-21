@@ -19,7 +19,7 @@ scores = {
 
 	draw = function(self)
 		for score in all(self) do
-			--print(score.n, score.x - 1, score.y + 1, 0)
+			print(score.n, score.x - 1, score.y + 1, 0)
 			print(score.n, score.x, score.y, 9)
 		end
 	end,

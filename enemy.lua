@@ -1,9 +1,5 @@
 -- enemy
 
-inflate_time = 30
-safe_time = 3
-float = 0.5
-
 local enemy = {
   
   new = function(self, x, y)
@@ -185,8 +181,8 @@ local enemy = {
       update_dead = function(self)
         if self.y > 127 then
           if not self.offscreen then
-            bubbles:new(self.x)
-            splashes:new(self.x)
+            bubble:new(self.x)
+            splash:new(self.x)
           end
           self.offscreen = true
         else

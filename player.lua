@@ -13,6 +13,10 @@ player = {
     vel = { x = 0, y = 0 },
     lives = 2,
     score = 0,
+    slide_timer = 0,
+    body = { x = 0, y = 0, width = 8, height = 16 },
+    ball_body = { x = 0, y = 0, width = 8, height = 8 },
+    foot_body = { x = 0, y = 0, width = 8, height = 8 },
 
     init = function(self)
         self.balloons = 2
@@ -26,10 +30,8 @@ player = {
         self.balloons = 2
         self.x = 0
         self.y = 104
-        self.vel = { x = 0, y = 0 }
-        self.body = { x = 0, y = 0, width = 8, height = 16 }
-        self.ball_body = { x = 0, y = 0, width = 8, height = 8 }
-        self.foot_body = { x = 0, y = 0, width = 8, height = 8 }
+        self.vel.x = 0
+        self.vel.y = 0
     end,
 
     animate = function(self)
@@ -125,14 +127,15 @@ player = {
         elseif input.b5 then
             self.vel.y -= force
         end
-
     end,
 
     update_grounded = function(self)
         self:update_input()
-        if input.x ~= 0 then
+        if input.x == 0 then
+            self.vel.x = lerp(0, self.vel.x, 0.5)
+        else
             self.vel.x += input.x * gspeed
-            self.vel.x = mid(-gspeed_max, self.vel.x, gspeed_max)
+            self.vel.x = mid(-gspeed_max,self.vel.x,gspeed_max)
         end
     end,
 

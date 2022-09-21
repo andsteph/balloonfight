@@ -33,13 +33,8 @@ function ease(current, max, step)
 end
 
 -- lerp
---[[
 function lerp(a, b, t)
     return a+(b-a)*t
-end
-]]
-function lerp(tar,pos,perc)
-    return (1-perc)*tar + perc*pos;
 end
 
 -- pad with zeros

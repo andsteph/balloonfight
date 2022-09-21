@@ -9,6 +9,7 @@ balloon = {
             x = x,
             y = y,
             sine = 0,
+            body = { y = 0, x = 0, width = 8, height = 8 },
 
             draw = function(self)
                 spr(62, self.x, self.y)
@@ -18,7 +19,8 @@ balloon = {
                 self.y -= 1
                 self.sine += 0.01
                 self.x = self.anchor_x + sin(self.sine) * 5
-                self.body = { y = self.y, x = self.x, width = 8, height = 8 }
+                self.body.x = self.x
+                self.body.y = self.y
             end
         }
 

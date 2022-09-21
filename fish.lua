@@ -1,9 +1,8 @@
 -- fish
 
-threshold = 100
-
 fish = {
 
+	threshold = 100,
 	x = 64,
 	y = 120,
 	speed = 0.75,
@@ -29,7 +28,7 @@ fish = {
 
 	update = function(self)
 		if self.state == 'inactive' then
-			if player.x > 32 and player.x < 84 and player.y > threshold then
+			if player.x > 32 and player.x < 84 and player.y > self.threshold then
 				self.animation = animation:new( 'jumping', self.sprs.jumping, 1, false )
 				self.x = player.x
 				self.y = 120

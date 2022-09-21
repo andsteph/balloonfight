@@ -2,8 +2,8 @@
 
 animation = {
 
-    new = function(self, name, sprs, delay, loop )
-        
+    new = function(self, name, sprs, delay, loop)
+
         local o = {
             name = name,
             sprs = sprs,
@@ -12,7 +12,7 @@ animation = {
             ticks = 0,
             index = 1,
             done = false,
-            
+
             get = function(self, n)
                 if n then
                     return self.sprs[n]
@@ -32,9 +32,9 @@ animation = {
                 return self.sprs[self.index]
             end
         }
-        
+
         return o
-    
+
     end
 
 }

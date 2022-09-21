@@ -36,7 +36,7 @@ tally = {
         if self.timer > self.step * 2 then
             text..=' = '..tostr(self.total)..' pts.'
         end
-        if self.timer > self.step * 3 then
+        if self.timer > self.step * 3 and bonus.collected == bonus.balloon_max then
             printc('p e r f e c t !!!', y + 40, nil, nil, 9)
             printc('super bonus  ' .. self.super .. 'pts!', y + 50, nil, nil, 9)
         end
