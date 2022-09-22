@@ -3,6 +3,7 @@
 debug = {
 	on = true,
 	visuals = false,
+	message = '',
 
 	draw_body = function(self, body, c)
 		if self.on and self.visuals then
@@ -19,6 +20,8 @@ debug = {
 	draw = function(self)
 		if self.on then
 			print(self.message, 0, 8, 7)
+			--print(player.state, 0, 8, 7)
+			--print(player.vel.x, 0, 16, 7)
 		end
 	end,
 

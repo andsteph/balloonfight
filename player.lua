@@ -1,3 +1,9 @@
+aspeed = 0.1
+aspeed_max = 3
+gspeed = 0.1
+gspeed_max = 2
+slide_delay = 1
+
 player = {
     anim = 1,
     ball_anim = 1,
@@ -7,7 +13,7 @@ player = {
         flapping = animation:new('flapping', { 4, 6, 4, 8 }, 3, true),
         standing = animation:new('standing', { 34, 36, 34, 38 }, 30, true),
         running = animation:new('running', { 40, 42, 40, 44 }, 3, true),
-        dying = animation:new('dying', { 10, 12, 14, 12 }, 3, true),
+        falling = animation:new('falling', { 10, 12, 14, 12 }, 3, true),
     },
     state = 'grounded',
     vel = { x = 0, y = 0 },
@@ -17,10 +23,14 @@ player = {
     body = { x = 0, y = 0, width = 8, height = 16 },
     ball_body = { x = 0, y = 0, width = 8, height = 8 },
     foot_body = { x = 0, y = 0, width = 8, height = 8 },
+    direction = right,
+    last_direction = right,
+    balloons = 2,
 
     init = function(self)
         self.balloons = 2
         self.direction = right
+        self.last_direction = right
         self.score = 0
         self.lives = 2
         self:reset()
@@ -32,43 +42,36 @@ player = {
         self.y = 104
         self.vel.x = 0
         self.vel.y = 0
-    end,
-
-    animate = function(self)
-        if self.balloons < 1 then
-            self.sprite = self.animations.dying:get()
-        else
-            if self.state == 'grounded' then
-                self.sprite = self.animations.standing:get()
-                if input.x ~= 0 then
-                    self.sprite = self.animations.running:get()
-                end
-            elseif input.b4 or input.b5 then
-                self.sprite = self.animations.flapping:get()
-            else
-                self.sprite = self.animations.flapping:get(1)
-            end
-            if self.balloons == 2 then
-                self.sprite = self.sprite + 62
-            end
-        end
+        self.state = 'grounded'
     end,
 
     draw = function(self)
         local flip_x = false
+        local sprite = self.sprite
+        if self.balloons == 2 then
+            sprite = sprite + 62
+        end
         if self.direction == right then
             flip_x = true
         end
-        spr(self.sprite, self.x, self.y, 2, 2, flip_x)
-        debug:draw_body(self.body, 10)
-        debug:draw_body(self.ball_body, 12)
-        debug:draw_body(self.foot_body, 8)
+        spr(sprite, self.x, self.y, 2, 2, flip_x)
+    end,
+
+    die = function(self)
+        if self.lives < 1 then
+            over:init()
+        else
+            self.lives -= 1
+            self:reset()
+        end
     end,
 
     pop = function(self)
-        if self.popped <= 0 then
-            self.balloons -= 1
-            self.popped = pop_delay
+        self.balloons -= 1
+        self.popped = pop_delay
+        if self.balloons < 1 then
+            self.vel.y -= 1
+            self.state = 'falling'
         end
     end,
 
@@ -79,7 +82,7 @@ player = {
         test_body.x = self.body.x
         test_body.y = self.body.y
         test_body.y += self.vel.y
-        local v_coll = level:collision(test_body)
+        local v_coll = collisions:check_level(test_body)
         if v_coll then
             if self.vel.y < 0 then
                 self.vel.y = bounce(self.vel.y)
@@ -98,7 +101,7 @@ player = {
         test_body.x = self.body.x
         test_body.y = self.body.y
         test_body.x += self.vel.x
-        local h_coll = level:collision(test_body)
+        local h_coll = collisions:check_level(test_body)
         if h_coll then
             self.vel.x = 0
         end
@@ -117,6 +120,7 @@ player = {
     end,
 
     update_input = function(self)
+        self.last_direction = self.direction
         if input.x < 0 then
             self.direction = left
         elseif input.x > 0 then
@@ -132,10 +136,16 @@ player = {
     update_grounded = function(self)
         self:update_input()
         if input.x == 0 then
-            self.vel.x = lerp(0, self.vel.x, 0.5)
+            self.sprite = self.animations.standing:get()
+            if self.vel.x > gspeed then
+                self.vel.x -= gspeed
+            elseif self.vel.x < -gspeed then
+                self.vel.x += gspeed
+            end
         else
             self.vel.x += input.x * gspeed
-            self.vel.x = mid(-gspeed_max,self.vel.x,gspeed_max)
+            self.vel.x = mid(-gspeed_max, self.vel.x, gspeed_max)
+            self.sprite = self.animations.running:get()
         end
     end,
 
@@ -144,30 +154,34 @@ player = {
         if input.b4 or input.b5 then
             self.vel.x += input.x * aspeed
             self.vel.x = mid(-aspeed_max, self.vel.x, aspeed_max)
+            self.sprite = self.animations.flapping:get()
+        else
+            self.sprite = self.animations.flapping:get(1)
         end
     end,
 
     update_caught = function(self)
-        self.x = fish.x
-        self.y = fish.y
+        self.vel.x = 0
+        self.vel.y = fish.speed
+        if self.y > 110 then
+            self:die()
+            fish.catch = false
+        end
     end,
 
-    update_dead = function(self)
+    update_falling = function(self)
+        self.vel.x = 0
         self.y += self.vel.y
+        self.sprite = self.animations.falling:get()
         if self.y > 255 then
-            if self.lives < 1 then
-                over:init()
-            else
-                self.lives -= 1
-                self:init()
-            end
+            self:die()
         end
     end,
 
     update = function(self)
         self.vel.y += gravity
         if self.balloons < 1 then
-            self.state = 'dead'
+            self.state = 'falling'
         end
         if self.state == 'grounded' then
             self:update_grounded()
@@ -175,15 +189,14 @@ player = {
             self:update_flying()
         elseif self.state == 'caught' then
             self:update_caught()
-        elseif self.state == 'dead' then
-            self:update_dead()
+        elseif self.state == 'falling' then
+            self:update_falling()
         end
         self:update_physics()
         self.y += self.vel.y
         self.x += self.vel.x
         wrap(self)
         self:update_body()
-        self:animate()
         if self.popped > 0 then
             self.popped -= 1
         end

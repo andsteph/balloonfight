@@ -1,5 +1,10 @@
 -- level
 
+f_fg = 0
+f_bg = 1
+f_solid = 2
+f_enemy = 3
+
 level = {
 	current = 1,
 	celx = 0,
@@ -30,23 +35,4 @@ level = {
 			end
 		end
 	end,
-
-	collision = function(self, rect1)
-		for x = 0, 15 do
-			for y = 0, 15 do
-				local sprite = mget(
-					self.celx + x,
-					self.cely + y
-				)
-				local flag = fget(sprite, f_solid)
-				local rect2 = {
-					x = x * 8, y = y * 8, width = 8, height = 8
-				}
-				if flag and collision(rect1, rect2) then
-					return rect2
-				end
-			end
-		end
-		return false
-	end
 }

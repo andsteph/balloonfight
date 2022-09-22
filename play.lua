@@ -17,19 +17,18 @@ play = {
 
     draw = function()
         cls(bgcolor)
-        if ticks > 1 then
-            fish:draw()
-            bgstars:draw()
-            level:draw_bg()
-            osd:draw()
-            splashes:draw()
-            level:draw_fg()
-            enemies:draw()
-            player:draw()
-            bubbles:draw()
-            scores:draw()
-            debug:draw()
-        end
+        collisions:update()
+        fish:draw()
+        bgstars:draw()
+        level:draw_bg()
+        osd:draw()
+        splashes:draw()
+        enemies:draw()
+        player:draw()
+        level:draw_fg()
+        bubbles:draw()
+        scores:draw()
+        debug:draw()
     end,
 
     update = function()

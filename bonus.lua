@@ -2,8 +2,10 @@
 
 bonus = {
 
-    balloons = {},
     balloon_max = 20,
+    counter = 0,
+    timer = 0,
+    collected = 0,
     delay = 30,
     pipes = {
         { col = 2, row = 13 },
@@ -17,6 +19,7 @@ bonus = {
         self.counter = 0
         self.collected = 0
         bgstars:init()
+        balloons:init()
         level:get(0)
         player:reset()
         _update = self.update
@@ -27,9 +30,7 @@ bonus = {
         self = bonus
         cls(bgcolor)
         bgstars:draw()
-        for ball in all(self.balloons) do
-            ball:draw()
-        end
+        balloons:draw()
         level:draw_bg()
         level:draw_fg()
         osd:draw()
@@ -42,18 +43,16 @@ bonus = {
         local pipe = self.pipes[n]
         local x = pipe.col * 8
         local y = pipe.row * 8
-        add(self.balloons, balloon:new(x, y))
+        balloon:new(x, y)
         self.counter += 1
     end,
 
     update = function()
         self = bonus
-        ticks = ticks + 1
         self.timer += 1
         if self.timer > self.delay then
-            if self.counter >
-                self.balloon_max then
-                if count(self.balloons) == 0 then
+            if self.counter > self.balloon_max then
+                if #balloons == 0 then
                     tally:init()
                 end
             else
@@ -62,17 +61,7 @@ bonus = {
             self.timer = 0
         end
         bgstars:update()
-        for ball in all(self.balloons) do
-            ball:update()
-            if ball.y < -8 then
-                del(self.balloons, ball)
-            end
-            if collision(player.body,
-                ball.body) then
-                self.collected += 1
-                del(self.balloons, ball)
-            end
-        end
+        balloons:update()
         input:update()
         player:update()
         debug:update()

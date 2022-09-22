@@ -24,7 +24,7 @@ balloon = {
             end
         }
 
-        return o
+        add(balloons, o)
 
     end
 

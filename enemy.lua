@@ -43,21 +43,6 @@ local enemy = {
         end
       end,
 
-      collision_enemies = function(self)
-        for enemy in all(enemies) do
-          if self ~= enemy and collision(self.body, enemy.body) and self.turncount == 0 then
-            self.vel.x = -self.vel.x
-            self.turncount = enemies.turntime
-          end
-        end
-      end,
-
-      collision_fish = function(self)
-        if collision(self, fish) then
-          self.caught = true
-        end
-      end,
-
       collision_level = function(self)
         if self.y < 0 then
           self.vel.y = abs(self.vel.y)
@@ -71,7 +56,7 @@ local enemy = {
         test_body.x = self.body.x
         test_body.y = self.body.y
         test_body.y += self.vel.y
-        local v_coll = level:collision(test_body)
+        local v_coll = collisions:check_level(test_body)
         if v_coll then
           if self.state == 'flying' then
             self.vel.y = -self.vel.y
@@ -84,7 +69,7 @@ local enemy = {
         test_body.x = self.body.x
         test_body.y = self.body.y
         test_body.x += self.vel.x
-        local h_coll = level:collision(test_body)
+        local h_coll = collisions:check_level(test_body)
         if h_coll then
           self.vel.x = -self.vel.x
           self.turncount = enemies.turntime
@@ -101,6 +86,18 @@ local enemy = {
           flip_x = true
         end
         spr(self.sprite, self.x, self.y, 2, 2, flip_x)
+      end,
+
+      kick = function(self)
+        self.vel.y = gravity
+        self.vel.x = 0
+        self.state = 'dead'
+      end,
+
+      pop = function(self)
+        self.vel.y = float
+        self.pop_timer = pop_delay
+        self.state = 'falling'
       end,
 
       update_body = function(self)
@@ -126,10 +123,6 @@ local enemy = {
             self.pump = 1
           end
         end
-        if collision(self.body, player.body) then
-          scores:new(self.x, self.y, 750)
-          self.state = 'dead'
-        end
       end,
 
       update_flying = function(self)
@@ -141,33 +134,14 @@ local enemy = {
         elseif self.vel.x > 0 then
           self.dir = right
         end
-        if collision(self.body, player.foot_body) then
-          player.vel.y = -1
-          player.vel.x = -player.vel.x / 2
-          self.vel.y = float
-          self.pop_timer = pop_delay
-          self.state = 'falling'
-        elseif collision(self.body, player.body) then
-          player.vel.x = -player.vel.x / 2
-          self.vel.x = -self.vel.x / 2
-        end
         self:collision_level()
-        self:collision_enemies()
       end,
 
       update_falling = function(self)
         if self.pop_timer > 0 then
           self.pop_timer -= 1
-        else
-          if collision(self.ball_body, player.foot_body) then
-            scores:new(self.x, self.y, 750)
-            player.vel.y = -1
-            player.vel.x = -player.vel.x / 2
-            self.state = 'dead'
-          end
         end
         self:collision_level()
-        self:collision_enemies()
       end,
 
       update_caught = function(self)
