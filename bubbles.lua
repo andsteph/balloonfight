@@ -17,7 +17,7 @@ bubbles = {
     update = function(self)
         for bubble in all(self) do
             bubble:update()
-            if bubble.y < -8 or bubble.pop == 0 then
+            if bubble.y < -8 or (bubble.popped and bubble.popped_count == 0) then
                 del(self, bubble)
             end
         end

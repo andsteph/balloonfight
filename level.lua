@@ -1,7 +1,7 @@
 -- level
 
-f_fg = 0
-f_bg = 1
+f_bg = 0x1
+f_fg = 0x2
 f_solid = 2
 f_enemy = 3
 
@@ -11,11 +11,11 @@ level = {
 	cely = 0,
 
 	draw_bg = function(self)
-		map(self.celx, self.cely, 0, 0, 16, 16, f_bg + 1)
+		map(self.celx, self.cely, 0, 0, 16, 16, f_bg)
 	end,
 
 	draw_fg = function(self)
-		map(self.celx, self.cely, 0, 0, 16, 16, f_fg + 1)
+		map(self.celx, self.cely, 0, 0, 16, 16, f_fg)
 	end,
 
 	get = function(self, n)
@@ -35,4 +35,8 @@ level = {
 			end
 		end
 	end,
+
+	is_solid = function(self, x, y)
+		return fget(mget(self.celx+x, self.cely+y), f_solid)
+	end
 }

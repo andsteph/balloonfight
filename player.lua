@@ -15,6 +15,9 @@ player = {
         running = animation:new('running', { 40, 42, 40, 44 }, 3, true),
         falling = animation:new('falling', { 10, 12, 14, 12 }, 3, true),
     },
+    sounds = {
+        flap = sound:new(2, 8),
+    },
     state = 'grounded',
     vel = { x = 0, y = 0 },
     lives = 2,
@@ -26,6 +29,7 @@ player = {
     direction = right,
     last_direction = right,
     balloons = 2,
+    safe = 0,
 
     init = function(self)
         self.balloons = 2
@@ -33,6 +37,7 @@ player = {
         self.last_direction = right
         self.score = 0
         self.lives = 2
+        self.safe = safe_time
         self:reset()
     end,
 
@@ -67,15 +72,17 @@ player = {
     end,
 
     pop = function(self)
-        self.balloons -= 1
-        self.popped = pop_delay
-        if self.balloons < 1 then
-            self.vel.y -= 1
-            self.state = 'falling'
+        if self.safe <= 0 then
+            self.balloons -= 1
+            self.safe = safe_time
+            if self.balloons < 1 then
+                self.vel.y -= 1
+                self.state = 'falling'
+            end
         end
     end,
 
-    update_physics = function(self)
+    update_level_interactions = function(self)
         local test_body = {}
         test_body.width = self.body.width
         test_body.height = self.body.height
@@ -129,6 +136,7 @@ player = {
         if not self.lastb4 and input.b4 then
             self.vel.y -= force * 2
         elseif input.b5 then
+            self.sounds.flap:play()
             self.vel.y -= force
         end
     end,
@@ -137,6 +145,16 @@ player = {
         self:update_input()
         if input.x == 0 then
             self.sprite = self.animations.standing:get()
+            if self.vel.x ~= 0 then
+                local diff = abs(self.vel.x)
+                if diff <= gravity then
+                    self.vel.x = 0
+                elseif self.vel.x > gspeed then
+                    self.vel.x -= gspeed
+                elseif self.vel.x < -gspeed then
+                    self.vel.x += gspeed
+                end
+            end
             if self.vel.x > gspeed then
                 self.vel.x -= gspeed
             elseif self.vel.x < -gspeed then
@@ -147,6 +165,7 @@ player = {
             self.vel.x = mid(-gspeed_max, self.vel.x, gspeed_max)
             self.sprite = self.animations.running:get()
         end
+        self:update_level_interactions()
     end,
 
     update_flying = function(self)
@@ -158,6 +177,7 @@ player = {
         else
             self.sprite = self.animations.flapping:get(1)
         end
+        self:update_level_interactions()
     end,
 
     update_caught = function(self)
@@ -192,13 +212,12 @@ player = {
         elseif self.state == 'falling' then
             self:update_falling()
         end
-        self:update_physics()
+        if self.safe > 0 then
+            self.safe -= 1
+        end
         self.y += self.vel.y
         self.x += self.vel.x
         wrap(self)
         self:update_body()
-        if self.popped > 0 then
-            self.popped -= 1
-        end
     end,
 }

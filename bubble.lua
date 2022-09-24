@@ -1,5 +1,7 @@
 -- bubble
 
+pop_time = 15
+
 bubble = {
 
   new = function(self, x)
@@ -11,30 +13,40 @@ bubble = {
       sine = 0,
       x = x,
       y = 143,
-      pop = -1,
-      pop_time = 2,
-      body = { x = x, y = y, width = 8, height = 8 },
+      popped = false,
+      popped_count = 0,
+      body = { x = x, y = 120, width = 8, height = 8 },
 
       draw = function(self)
         spr(self.sprite, self.x, self.y)
       end,
 
+      pop = function(self)
+        debug.message = 'pop'
+        if self.popped == false then
+          scores:new(self.x, self.y, 500)
+          self.popped = true
+          self.popped_count = pop_time
+          sfx(0)
+        end
+      end,
+
+      update_body = function(self)
+        self.body.x = self.x
+        self.body.y = self.y
+      end,
+
       update = function(self)
-        if self.pop > 0 then
-          self.pop -= 1
+        if self.popped then
           self.sprite = 74
+          self.popped_count -= 1
         else
           self.sprite = self.animation:get()
         end
         self.y -= 0.5
         self.sine += 0.01
         self.x = self.anchor_x + sin(self.sine) * 5
-        self.body.x = self.x
-        self.body.y = self.y
-        if collision(self.body, player.body) and self.pop == -1 then
-          scores:new(self.x, self.y, 'bubble')
-          self.pop = self.pop_time
-        end
+        self:update_body()
       end
     }
 

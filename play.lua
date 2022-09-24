@@ -9,6 +9,7 @@ play = {
         enemies:init()
         bubbles:init()
         scores:init()
+        splashes:init()
         level:get()
         self.finish_count = 0
         _update = self.update

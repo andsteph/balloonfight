@@ -22,26 +22,9 @@ local enemy = {
         flapping = animation:new( 'flapping', {196, 198, 200, 198}, 3, true ),
         falling = animation:new( 'falling', {202, 204, 206}, 5, false ),
       },
+      safe = 0,
       turncount = 0,
       state = 'pumping',
-
-      animate = function(self)
-        if self.state == 'pumping' then
-          self.sprite = self.animations.pumping:get()
-        elseif self.state == 'flying' then
-          if self.vel.y > 0 then
-            self.sprite = self.animations.flapping:get(1)
-          else
-            self.sprite = self.animations.flapping:get()
-          end          
-        elseif self.state == 'falling' then
-          self.sprite = self.animations.falling:get()
-        elseif self.state == 'caught' then
-
-        elseif self.state == 'dead' then
-          self.sprite = 224
-        end
-      end,
 
       collision_level = function(self)
         if self.y < 0 then
@@ -89,14 +72,18 @@ local enemy = {
       end,
 
       kick = function(self)
-        self.vel.y = gravity
-        self.vel.x = 0
-        self.state = 'dead'
+        if self.safe <= 0 then
+          sfx(1)
+          self.vel.y = gravity
+          self.vel.x = 0
+          self.state = 'dead'
+        end
       end,
 
       pop = function(self)
+        sfx(0)
         self.vel.y = float
-        self.pop_timer = pop_delay
+        self.safe = safe_time
         self.state = 'falling'
       end,
 
@@ -123,6 +110,7 @@ local enemy = {
             self.pump = 1
           end
         end
+        self.sprite = self.animations.pumping:get()
       end,
 
       update_flying = function(self)
@@ -135,6 +123,11 @@ local enemy = {
           self.dir = right
         end
         self:collision_level()
+        if self.vel.y > 0 then
+          self.sprite = self.animations.flapping:get(1)
+        else
+          self.sprite = self.animations.flapping:get()
+        end    
       end,
 
       update_falling = function(self)
@@ -142,6 +135,7 @@ local enemy = {
           self.pop_timer -= 1
         end
         self:collision_level()
+        self.sprite = self.animations.falling:get()
       end,
 
       update_caught = function(self)
@@ -162,6 +156,7 @@ local enemy = {
         else
           self.y += 2
         end
+        self.sprite = 224
       end,
 
       update = function(self)
@@ -176,11 +171,13 @@ local enemy = {
         elseif self.state == 'dead' then
           self:update_dead()
         end
+        if self.safe > 0 then
+          self.safe -= 1
+        end
         self.y += self.vel.y
         self.x += self.vel.x
         wrap(self)
         self:update_body()
-        self:animate()
       end,
     }
 
